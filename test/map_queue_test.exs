@@ -1,0 +1,48 @@
+defmodule MapQueueTest do
+  use ExUnit.Case
+  doctest MapQueue
+
+  test "new/0 returns an empty queue" do
+    assert %MapQueue{map: map, first: 0, last: 0} = MapQueue.new()
+    assert map_size(map) == 0
+  end
+
+  describe "new/1" do
+    test "can handle lists" do
+      assert %MapQueue{
+               map: %{
+                 0 => "1",
+                 1 => "2",
+                 2 => "3"
+               },
+               first: 0,
+               last: 2
+             } = MapQueue.new(["1", "2", "3"])
+    end
+
+    test "can handle maps, but order is not guaranteed" do
+      assert %MapQueue{map: map, first: 0, last: 1} = MapQueue.new(%{one: "one", two: "two"})
+      values = Map.values(map)
+      assert {:one, "one"} in values
+      assert {:two, "two"} in values
+    end
+  end
+
+  describe "pop/2" do
+    test "pops in order" do
+      queue = "one two three four five" |> String.split(" ") |> MapQueue.new()
+      assert {"one", queue} = MapQueue.pop(queue)
+      assert {"two", queue} = MapQueue.pop(queue)
+      assert {"three", queue} = MapQueue.pop(queue)
+      assert {"four", queue} = MapQueue.pop(queue)
+    end
+  end
+
+  test "QueueMap implements Enumerable" do
+    assert [1, 2, 3, 4, 5] == 1..5 |> MapQueue.new() |> Enum.into([])
+    assert [3, 4, 5, 6] == 1..6 |> MapQueue.new() |> Enum.drop(2)
+    assert [1, 2, 3] == 1..50 |> MapQueue.new() |> Enum.slice(0, 3)
+    assert [11, 12, 13] == 1..50 |> MapQueue.new() |> Enum.slice(10, 3)
+    assert 15 == Enum.reduce(MapQueue.new(1..5), 0, fn n, acc -> n + acc end)
+  end
+end
