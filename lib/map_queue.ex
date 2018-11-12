@@ -164,17 +164,28 @@ defmodule MapQueue do
       :erlang.iolist_to_binary(["#MapQueue<[", items, "]>"])
     end
 
+    defp render_values(map, _, _) when map_size(map) == 0 do
+      wrap_brackets("")
+    end
+    defp render_values(map, first, _) when map_size(map) == 1 do
+      map
+      |> render_value(first)
+      |> wrap_brackets
+    end
     defp render_values(map, first, last) do
-      [
-        Map.fetch(map, first),
-        Map.fetch(map, last)
-      ]
-      |> Enum.filter(fn
-        :error -> false
-        {:ok, _} -> true
-      end)
-      |> Enum.map(fn {:ok, value} -> inspect(value) end)
-      |> Enum.join(" ... ")
+      [render_value(map, first), ", ..., ", render_value(map, last)]
+      |> Enum.join("")
+      |> wrap_brackets()
+    end
+
+    def render_value(map, key) do
+      map
+      |> Map.get(key)
+      |> inspect()
+    end
+
+    defp wrap_brackets(item) do
+      "[" <> item <> "]"
     end
   end
 end
