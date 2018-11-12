@@ -1,4 +1,21 @@
 defmodule MapQueue do
+  @moduledoc """
+  MapQueue is an implemenation of a queue with a single map as the underlying
+  data structure.
+
+  The benefit of using a MapQueue over a list is that appending to the tail of 
+  a list `++` can become quite an expensive operation when the list is large.
+  
+  With MapQueue adding or removing items from the queue is roughtly as fast as
+  the same operation on a Map.
+
+  MapQueue keeps track of items in a map with integers as keys, and also tracks
+  the highest (`last`) and lowest (`first`) items in the `map`.
+
+  Since each item in a MapQueue is tracked by an integer, the memory consumption of
+  a MapQueue will be higher than that of an equivalent list or Erlang `:queue`.
+  """
+
   @type t :: %__MODULE__{
           first: integer(),
           last: integer(),
@@ -63,7 +80,6 @@ defmodule MapQueue do
   end
 
   @spec pop_rear(MapQueue.t(), non_neg_integer()) :: {list(), MapQueue.t()}
-
   def pop_rear(%MapQueue{} = queue, 0) do
     {[], queue}
   end
@@ -130,7 +146,7 @@ defmodule MapQueue do
     {value, queue}
   end
 
-  def do_pop_indexes(%MapQueue{map: map} = queue, a..b, first_or_last, boundary_value) do
+  defp do_pop_indexes(%MapQueue{map: map} = queue, a..b, first_or_last, boundary_value) do
     indexes = Enum.into(a..b, [])
     popped_items = Enum.map(indexes, fn index -> Map.get(map, index) end)
     updated_map = Map.drop(map, indexes)

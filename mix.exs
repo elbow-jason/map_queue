@@ -4,7 +4,7 @@ defmodule MapQueue.MixProject do
   def project do
     [
       app: :map_queue,
-      version: "0.1.2",
+      version: "0.2.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -30,7 +30,8 @@ defmodule MapQueue.MixProject do
     [
       files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/elbow-jason/postgrex"}
+      links: %{"GitHub" => "https://github.com/elbow-jason/map_queue"},
+      description: "A queue implementation built on top of Map"
     ]
   end
 end
