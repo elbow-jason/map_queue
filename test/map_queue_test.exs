@@ -37,7 +37,7 @@ defmodule MapQueueTest do
       assert {"four", queue} = MapQueue.pop(queue)
     end
   end
-  
+
   describe "pop/2" do
     test "returns a list and MapQueue struct" do
       assert {popped, queue} = MapQueue.new() |> MapQueue.pop(10)
@@ -60,7 +60,6 @@ defmodule MapQueueTest do
       assert MapQueue.size(queue) == 0
       assert {[], _} = MapQueue.pop(queue, 10)
     end
-
   end
 
   describe "defimpl Collectable, for: QueueMap" do
@@ -77,14 +76,13 @@ defmodule MapQueueTest do
       assert %MapQueue{} = queue = Enum.into(11..15, queue)
       assert Enum.into(queue, []) == [1, 2, 3, 4, 5, 11, 12, 13, 14, 15]
     end
-    
+
     test "collecting pushes new entries to the rear of the queue" do
       assert %MapQueue{} = queue = Enum.into(1..5, MapQueue.new())
       assert %MapQueue{} = queue = Enum.into(11..15, queue)
       assert {1, queue} = MapQueue.pop(queue)
       assert {15, queue} = MapQueue.pop_rear(queue)
     end
-    
   end
 
   test "QueueMap implements Enumerable" do
@@ -96,6 +94,4 @@ defmodule MapQueueTest do
     assert 1..5 |> MapQueue.new() |> Enum.count() == 5
     assert 1..5 |> MapQueue.new() |> Enum.sum() == 15
   end
-
-
 end

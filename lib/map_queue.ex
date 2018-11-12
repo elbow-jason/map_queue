@@ -1,10 +1,9 @@
 defmodule MapQueue do
-
   @type t :: %__MODULE__{
-    first: integer(),
-    last: integer(),
-    map: %{required(integer()) => any()}
-  }
+          first: integer(),
+          last: integer(),
+          map: %{required(integer()) => any()}
+        }
 
   defstruct first: 0,
             last: 0,
@@ -52,6 +51,7 @@ defmodule MapQueue do
   def pop(%MapQueue{map: map} = queue, _) when map_size(map) == 0 do
     {[], queue}
   end
+
   def pop(%MapQueue{first: first, last: last} = queue, count) when count >= 0 do
     last_popped = min(first + count - 1, last)
     do_pop_indexes(queue, first..last_popped, :first, min(last_popped, last))
@@ -134,10 +134,12 @@ defmodule MapQueue do
     indexes = Enum.into(a..b, [])
     popped_items = Enum.map(indexes, fn index -> Map.get(map, index) end)
     updated_map = Map.drop(map, indexes)
-    updated_queue = 
+
+    updated_queue =
       queue
       |> Map.put(first_or_last, boundary_value)
       |> Map.put(:map, updated_map)
+
     {popped_items, updated_queue}
   end
 
@@ -159,7 +161,9 @@ defmodule MapQueue do
       end
     end
 
-    @type suspended_function :: ({:cont, any()} | {:halt, any()} | {:suspend, any()} -> {:done, any()} | {:halted, any()} | {:suspended, any(), any()})
+    @type suspended_function ::
+            ({:cont, any()} | {:halt, any()} | {:suspend, any()} ->
+               {:done, any()} | {:halted, any()} | {:suspended, any(), any()})
     @spec reduce(any(), {:cont, any()} | {:halt, any()} | {:suspend, any()}, any()) ::
             {:done, any()}
             | {:halted, any()}
@@ -181,7 +185,8 @@ defmodule MapQueue do
       reduce(queue, fun.(popped, acc), fun)
     end
 
-    @spec slice(MapQueue.t()) :: {:ok, non_neg_integer(), (non_neg_integer(), pos_integer() -> list(any()))}
+    @spec slice(MapQueue.t()) ::
+            {:ok, non_neg_integer(), (non_neg_integer(), pos_integer() -> list(any()))}
     def slice(%MapQueue{map: map} = queue) do
       func = fn start, count ->
         queue
@@ -209,11 +214,13 @@ defmodule MapQueue do
     defp render_values(map, _, _) when map_size(map) == 0 do
       wrap_brackets("")
     end
+
     defp render_values(map, first, _) when map_size(map) == 1 do
       map
       |> render_value(first)
       |> wrap_brackets
     end
+
     defp render_values(map, first, last) do
       [render_value(map, first), ", ..., ", render_value(map, last)]
       |> Enum.join("")
@@ -238,9 +245,8 @@ defmodule MapQueue do
         queue, :done -> queue
         _queue, :halt -> :ok
       end
+
       {original, collector_fun}
     end
   end
-  
 end
-
