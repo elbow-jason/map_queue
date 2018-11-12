@@ -20,11 +20,14 @@ defmodule MapQueue do
     append(%MapQueue{}, enumerable)
   end
 
+  @spec size(MapQueue.t()) :: non_neg_integer()
+  def size(%MapQueue{map: map}) do
+    map_size(map)
+  end
+
   @spec append(MapQueue.t(), any()) :: MapQueue.t()
   def append(%MapQueue{} = queue, enumerable) do
-    Enum.reduce(enumerable, queue, fn item, acc ->
-      push(acc, item)
-    end)
+    Enum.into(enumerable, queue)
   end
 
   @spec prepend(MapQueue.t(), any()) :: MapQueue.t()
@@ -41,9 +44,37 @@ defmodule MapQueue do
     do_pop(queue, :first)
   end
 
+  @spec pop(MapQueue.t(), non_neg_integer()) :: {list(), MapQueue.t()}
+  def pop(%MapQueue{} = queue, 0) do
+    {[], queue}
+  end
+
+  def pop(%MapQueue{map: map} = queue, _) when map_size(map) == 0 do
+    {[], queue}
+  end
+  def pop(%MapQueue{first: first, last: last} = queue, count) when count >= 0 do
+    last_popped = min(first + count - 1, last)
+    do_pop_indexes(queue, first..last_popped, :first, min(last_popped, last))
+  end
+
   @spec pop_rear(MapQueue.t()) :: :empty | {any(), MapQueue.t()}
   def pop_rear(%MapQueue{} = queue) do
     do_pop(queue, :last)
+  end
+
+  @spec pop_rear(MapQueue.t(), non_neg_integer()) :: {list(), MapQueue.t()}
+
+  def pop_rear(%MapQueue{} = queue, 0) do
+    {[], queue}
+  end
+
+  def pop_rear(%MapQueue{map: map} = queue, _) when map_size(map) == 0 do
+    {[], queue}
+  end
+
+  def pop_rear(%MapQueue{first: first, last: last} = queue, count) when count > 0 do
+    first_popped = max(last - count, first)
+    do_pop_indexes(queue, last..first_popped, :last, max(first_popped - 1, first))
   end
 
   @spec push(MapQueue.t(), any()) :: MapQueue.t()
@@ -97,6 +128,17 @@ defmodule MapQueue do
       |> Map.put(index_type, index + diff_by_index_type(index_type))
 
     {value, queue}
+  end
+
+  def do_pop_indexes(%MapQueue{map: map} = queue, a..b, first_or_last, boundary_value) do
+    indexes = Enum.into(a..b, [])
+    popped_items = Enum.map(indexes, fn index -> Map.get(map, index) end)
+    updated_map = Map.drop(map, indexes)
+    updated_queue = 
+      queue
+      |> Map.put(first_or_last, boundary_value)
+      |> Map.put(:map, updated_map)
+    {popped_items, updated_queue}
   end
 
   defimpl Enumerable do
@@ -188,4 +230,17 @@ defmodule MapQueue do
       "[" <> item <> "]"
     end
   end
+
+  defimpl Collectable, for: MapQueue do
+    def into(original) do
+      collector_fun = fn
+        queue, {:cont, item} -> MapQueue.push(queue, item)
+        queue, :done -> queue
+        _queue, :halt -> :ok
+      end
+      {original, collector_fun}
+    end
+  end
+  
 end
+
